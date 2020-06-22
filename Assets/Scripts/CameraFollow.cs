@@ -14,11 +14,13 @@ public class CameraFollow : MonoBehaviour
     {
         _camera = Camera.main.transform;
         _player = FindObjectsOfType<ArcherController>().FirstOrDefault(x => x.isMine)?.gameObject.transform;
-
     }
 
     void Update()
     {
+        if (_player == null)
+            return;
+        
         var pPosition = _player.position;
         var cPosition = _camera.position;
         var newPosition = new Vector3(cPosition.x, Math.Max(pPosition.y, 7)  , pPosition.z);
