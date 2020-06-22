@@ -19,6 +19,7 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - StandaloneLinux64
+          - StandaloneOSX 
     steps:
       - uses: actions/checkout@v2
         with:
