@@ -16,7 +16,9 @@ public class ArcherController : MonoBehaviour
     PhotonView _photonView;
 
     public TextMesh PlayerName;
+    public GameObject Crown;
     public bool IsMine => _photonView != null && _photonView.IsMine;
+    public string Id => _photonView.Owner.UserId;
 
     [SerializeField]
     GameObject arrowPrefab;
@@ -31,6 +33,7 @@ public class ArcherController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _photonView = GetComponent<PhotonView>();
         _respawn = GameObject.Find("RespawnPoint").transform;
+        Crown.SetActive(false);
     }
 
     void Start()
@@ -41,12 +44,14 @@ public class ArcherController : MonoBehaviour
     void Update()
     {
         PlayerName.transform.forward = (PlayerName.transform.position - Camera.main.transform.position); //billboard
-
+        
         _animator.SetBool(_walk, _movement.MovimentDirection() != 0);
 
         if (!IsMine) return;
         if (Input.GetButton("Fire2"))
             _photonView.RPC(nameof(Attack), RpcTarget.All);
+        
+        Crown.SetActive(GameManager.Instance.winningPlayer == Id);
     }
 
     [PunRPC]
@@ -55,7 +60,8 @@ public class ArcherController : MonoBehaviour
         _animator.SetBool(_attack, true);
         _movement.LockMovement();
     }
-
+    
+    [PunRPC]
     public void Die()
     {
         _movement.LockMovement();
@@ -69,15 +75,18 @@ public class ArcherController : MonoBehaviour
         transform.position = _respawn.position;
         _rb.velocity = Vector3.zero;
         _movement.UnlockMovement();
+        GameManager.Instance.Reset(this);
     }
 
     void OnCollisionEnter(Collision other)
     {
         var otherObject = other.gameObject;
-        if (otherObject.CompareTag("Shot"))
-            Die();
+        if (otherObject.CompareTag("Shot") && other.collider.enabled)
+        {
+            GameManager.Instance.AddScore(otherObject.GetComponent<ArrowScript>().Parent);
+            _photonView.RPC(nameof(Die), RpcTarget.All);
+        }
     }
-
 
     void ForceUnlock()
     {
@@ -89,7 +98,8 @@ public class ArcherController : MonoBehaviour
 
     public void ArrowTrigger()
     {
-        Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
+        var arrow =Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
+        arrow.GetComponent<ArrowScript>().Parent = this;
         Invoke(nameof(ForceUnlock), .3f);
     }
 

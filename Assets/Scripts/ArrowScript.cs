@@ -6,6 +6,7 @@ using UnityEngine;
 public class ArrowScript : MonoBehaviour
 {
     private Rigidbody rb;
+    public ArcherController Parent { get; set; }
 
     void Start()
     {
@@ -24,6 +25,7 @@ public class ArrowScript : MonoBehaviour
         {
             rb.isKinematic = true;
             rb.useGravity = false;
+            GetComponent<Collider>().enabled = false;
             Destroy(gameObject, 3);
         }
         

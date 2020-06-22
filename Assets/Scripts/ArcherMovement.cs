@@ -67,12 +67,16 @@ public class ArcherMovement : MonoBehaviour
         if (locked || !_controller.IsMine)
             return;
         _rigidbody.velocity = _movement;
+        
         if (Input.GetButton("Fire1") && _isGrounded)
             Jump();
     }
 
     void Jump()
     {
+        if (locked)
+            return;
+            
         _rigidbody.velocity = new Vector3(0, jumpForce, _rigidbody.velocity.z);
     }
 
