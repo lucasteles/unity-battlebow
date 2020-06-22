@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
 public class ArcherController : MonoBehaviour
@@ -12,8 +13,9 @@ public class ArcherController : MonoBehaviour
     Rigidbody _rb;
     ArcherMovement _movement;
     Transform _respawn;
+    PhotonView _photonView;
 
-    public bool isMine = true;
+    public bool IsMine => _photonView != null && _photonView.IsMine;
     
     [SerializeField]
     GameObject arrowPrefab;
@@ -25,12 +27,13 @@ public class ArcherController : MonoBehaviour
         _animator = GetComponent<Animator>();
         _movement = GetComponent<ArcherMovement>();
         _rb = GetComponent<Rigidbody>();
+        _photonView = GetComponent<PhotonView>();
         _respawn = GameObject.Find("RespawnPoint").transform;
     }
 
     void Update()
     {
-        if (!isMine)
+        if (!IsMine)
             return;
         
         _animator.SetBool(_walk, _movement.HorizontalRaw != 0);

@@ -30,11 +30,10 @@ public class ArcherMovement : MonoBehaviour
 
     void Update()
     {
-        if (locked || !_controller.isMine)
+        if (locked || !_controller.IsMine)
             return;
 
         _movement = new Vector3(0, _rigidbody.velocity.y, HorizontalRaw * multVelocity);
-
 
         switch (HorizontalRaw)
         {
@@ -57,7 +56,7 @@ public class ArcherMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (locked || !_controller.isMine)
+        if (locked || !_controller.IsMine)
             return;
 
         _rigidbody.velocity = _movement;
