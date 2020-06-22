@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
-public class ArcherController : MonoBehaviour
+public class ArcherController : MonoBehaviour, IPunObservable
 {
     readonly int _walk = Animator.StringToHash("Walk");
     readonly int _attack = Animator.StringToHash("Attack");
@@ -18,7 +18,10 @@ public class ArcherController : MonoBehaviour
     public TextMesh PlayerName;
     public GameObject Crown;
     public bool IsMine => _photonView != null && _photonView.IsMine;
-    public string Id => _photonView.Owner.UserId;
+    public string Id => _photonView.Owner.NickName;
+
+    [SerializeField]
+    public int score;
 
     [SerializeField]
     GameObject arrowPrefab;
@@ -39,28 +42,30 @@ public class ArcherController : MonoBehaviour
     void Start()
     {
         PlayerName.text = _photonView.Owner.NickName;
+        GameManager.Instance.AddPlayer(this);
     }
 
     void Update()
     {
         PlayerName.transform.forward = (PlayerName.transform.position - Camera.main.transform.position); //billboard
-        
+        // PlayerName.text = score.ToString();
+
         _animator.SetBool(_walk, _movement.MovimentDirection() != 0);
+        Crown.SetActive(Id != null && GameManager.Instance.winningPlayer == Id);
 
         if (!IsMine) return;
         if (Input.GetButton("Fire2"))
             _photonView.RPC(nameof(Attack), RpcTarget.All);
-        
-        Crown.SetActive(GameManager.Instance.winningPlayer == Id);
     }
 
     [PunRPC]
     public void Attack()
     {
         _animator.SetBool(_attack, true);
+        _rb.velocity = Vector3.zero;
         _movement.LockMovement();
     }
-    
+
     [PunRPC]
     public void Die()
     {
@@ -71,11 +76,11 @@ public class ArcherController : MonoBehaviour
 
     public void Respawn()
     {
+        score = 0;
         _animator.SetBool(_dead, false);
         transform.position = _respawn.position;
         _rb.velocity = Vector3.zero;
         _movement.UnlockMovement();
-        GameManager.Instance.Reset(this);
     }
 
     void OnCollisionEnter(Collision other)
@@ -83,7 +88,9 @@ public class ArcherController : MonoBehaviour
         var otherObject = other.gameObject;
         if (otherObject.CompareTag("Shot") && other.collider.enabled)
         {
-            GameManager.Instance.AddScore(otherObject.GetComponent<ArrowScript>().Parent);
+            var parent = otherObject.GetComponent<ArrowScript>()?.Parent;
+            if (parent != null)
+                parent.score++;
             _photonView.RPC(nameof(Die), RpcTarget.All);
         }
     }
@@ -98,7 +105,7 @@ public class ArcherController : MonoBehaviour
 
     public void ArrowTrigger()
     {
-        var arrow =Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
+        var arrow = Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
         arrow.GetComponent<ArrowScript>().Parent = this;
         Invoke(nameof(ForceUnlock), .3f);
     }
@@ -107,5 +114,19 @@ public class ArcherController : MonoBehaviour
     {
         _animator.SetBool(_attack, false);
         _movement.UnlockMovement();
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            print($"sending = " + score);
+            stream.SendNext(score);
+        }
+        else
+        {
+            score = (int) stream.ReceiveNext();
+            print($"received = " + score);
+        }
     }
 }

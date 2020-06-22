@@ -5,20 +5,20 @@ using System.Linq;
 using Photon.Pun;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour, IPunObservable
+public class GameManager : MonoBehaviour
 {
     public GameObject prefabPlayer;
     public Transform spawnPoint;
 
-    [SerializeField]
-    Dictionary<string, int> score = new Dictionary<string, int>();
-
     public static GameManager Instance;
 
+    public IList<ArcherController> players = new List<ArcherController>();
+    
     public string winningPlayer;
     
     void Awake() => Instance = this;
-
+    public void AddPlayer(ArcherController player) => players.Add(player);
+    
     void Start()
     {
         PhotonNetwork
@@ -27,38 +27,12 @@ public class GameManager : MonoBehaviour, IPunObservable
 
     private void Update()
     {
-        winningPlayer = score
-            .OrderByDescending(x => x.Value)
-            .Select(x => x.Key)
+        winningPlayer = players
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .Select(x => x.Id)
             .FirstOrDefault();
     }
 
-    public void AddScore(ArcherController controller)
-    {
-        if (score.ContainsKey(controller.Id))
-            score[controller.Id]++;
-        else
-            score.Add(controller.Id, 0);
-    }
     
-    public void Reset(ArcherController controller)
-    {
-        if (score.ContainsKey(controller.Id))
-            score[controller.Id] = 0;
-        else
-            score.Add(controller.Id, 0);
-    }
-
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.IsWriting)
-        {
-            stream.SendNext(score);
-        }
-        else
-        {
-            score = (Dictionary<string,int>)stream.ReceiveNext();
-            print("received!!");
-        }
-    }
 }

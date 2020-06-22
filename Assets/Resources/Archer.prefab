@@ -525,7 +525,6 @@ MonoBehaviour:
   jumpForce: 12
   multVelocity: 5
   locked: 0
-  Fliped: 0
 --- !u!114 &339962146953663572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -540,6 +539,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerName: {fileID: 6496366103059455468}
   Crown: {fileID: 3278932686971102013}
+  score: 0
   arrowPrefab: {fileID: 8471793859810433157, guid: bcaa4fa217a14f24886845b2d69cc668,
     type: 3}
   arrowSpawn: {fileID: 339962146635526164}
@@ -563,6 +563,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 4300804782847114271}
   - {fileID: -916506930015174842}
+  - {fileID: 339962146953663572}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

@@ -10,8 +10,8 @@ public class ArcherMovement : MonoBehaviour
     Rigidbody _rigidbody;
     Vector3 _movement;
     ArcherController _controller;
-    
-    
+
+
     bool _isGrounded = true;
 
     [SerializeField]
@@ -21,8 +21,6 @@ public class ArcherMovement : MonoBehaviour
     float multVelocity = 3;
 
     public bool locked;
-
-    public bool Fliped = false;
 
     public int MovimentDirection()
     {
@@ -67,17 +65,20 @@ public class ArcherMovement : MonoBehaviour
         if (locked || !_controller.IsMine)
             return;
         _rigidbody.velocity = _movement;
-        
+
         if (Input.GetButton("Fire1") && _isGrounded)
             Jump();
     }
 
     void Jump()
     {
-        if (locked)
-            return;
-            
         _rigidbody.velocity = new Vector3(0, jumpForce, _rigidbody.velocity.z);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Floor"))
+            _rigidbody.velocity = new Vector3(0, 0, _rigidbody.velocity.z);
     }
 
     void OnTriggerStay(Collider other)
