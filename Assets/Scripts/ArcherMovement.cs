@@ -72,15 +72,14 @@ public class ArcherMovement : MonoBehaviour
 
     void Jump()
     {
+        if (!_controller.IsMine)
+            return;
+        
         SoundManager.Instance.PlayJump();
         _rigidbody.velocity = new Vector3(0, jumpForce, _rigidbody.velocity.z);
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Floor"))
-            _rigidbody.velocity = new Vector3(0, 0, _rigidbody.velocity.z);
-    }
+    public bool IsGrounded => _isGrounded;
 
     void OnTriggerStay(Collider other)
     {
