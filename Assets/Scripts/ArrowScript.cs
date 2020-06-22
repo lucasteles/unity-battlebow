@@ -12,6 +12,7 @@ public class ArrowScript : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.AddForce(transform.forward * 120, ForceMode.Impulse);
+        SoundManager.Instance.PlayShot();
     }
 
 
@@ -19,15 +20,16 @@ public class ArrowScript : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
+            SoundManager.Instance.PlayHitChatacter();
             Destroy(gameObject);
         }
         else
         {
+            SoundManager.Instance.PlayHitOther();
             rb.isKinematic = true;
             rb.useGravity = false;
             GetComponent<Collider>().enabled = false;
             Destroy(gameObject, 3);
         }
-        
     }
 }

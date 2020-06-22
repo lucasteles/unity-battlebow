@@ -72,6 +72,7 @@ public class ArcherMovement : MonoBehaviour
 
     void Jump()
     {
+        SoundManager.Instance.PlayJump();
         _rigidbody.velocity = new Vector3(0, jumpForce, _rigidbody.velocity.z);
     }
 

@@ -70,6 +70,7 @@ public class ArcherController : MonoBehaviour, IPunObservable
     public void Die()
     {
         _movement.LockMovement();
+        SoundManager.Instance.PlayDie();
         _animator.SetBool(_dead, true);
         Invoke(nameof(Respawn), 3f);
     }
