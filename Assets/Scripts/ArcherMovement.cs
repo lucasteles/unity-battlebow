@@ -8,6 +8,7 @@ public class ArcherMovement : MonoBehaviour
 {
     Rigidbody _rigidbody;
     Vector3 _movement;
+    ArcherController _controller;
     bool _isGrounded = true;
 
     [SerializeField]
@@ -16,7 +17,7 @@ public class ArcherMovement : MonoBehaviour
     [SerializeField]
     float multVelocity = 3;
 
-    private bool _stop;
+    public bool locked;
 
 
     public int HorizontalRaw => (int) Input.GetAxisRaw("Horizontal");
@@ -24,18 +25,16 @@ public class ArcherMovement : MonoBehaviour
     void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
+        _controller = GetComponent<ArcherController>();
     }
 
     void Update()
     {
-
-        if (_stop)
+        if (locked || !_controller.isMine)
             return;
-        
+
         _movement = new Vector3(0, _rigidbody.velocity.y, HorizontalRaw * multVelocity);
 
-        if (Input.GetButton("Fire1") && _isGrounded)
-            Jump();
 
         switch (HorizontalRaw)
         {
@@ -58,8 +57,13 @@ public class ArcherMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!_stop)
-            _rigidbody.velocity = _movement;
+        if (locked || !_controller.isMine)
+            return;
+
+        _rigidbody.velocity = _movement;
+
+        if (  Input.GetButton("Fire1") && _isGrounded)
+            Jump();
     }
 
     void Jump()
@@ -72,14 +76,15 @@ public class ArcherMovement : MonoBehaviour
         if (other.gameObject.layer == LayerMask.NameToLayer("Floor"))
             _isGrounded = true;
     }
-    
-    
+
+
     void OnTriggerExit(Collider other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Floor"))
             _isGrounded = false;
     }
 
-    public void LockMovement() => _stop = true;
-    public void UnlockMovement() => _stop = false;
+    
+    public void LockMovement() => locked = true;
+    public void UnlockMovement() => locked = false;
 }

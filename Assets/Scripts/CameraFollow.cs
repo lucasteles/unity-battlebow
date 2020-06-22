@@ -13,7 +13,7 @@ public class CameraFollow : MonoBehaviour
     void Start()
     {
         _camera = Camera.main.transform;
-        _player = FindObjectsOfType<CharacterStats>().FirstOrDefault(x => x.mainCharacter)?.gameObject.transform;
+        _player = FindObjectsOfType<ArcherController>().FirstOrDefault(x => x.isMine)?.gameObject.transform;
 
     }
 

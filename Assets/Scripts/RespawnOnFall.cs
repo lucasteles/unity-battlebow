@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class RespawnOnFall : MonoBehaviour
@@ -8,11 +9,17 @@ public class RespawnOnFall : MonoBehaviour
     [SerializeField]
     Transform respawnPoint;
 
-    void OnTriggerEnter(Collider other)
+    void OnCollisionEnter(Collision other)
     {
-        var player = other.gameObject;
-        var rb = other.GetComponent<Rigidbody>();
-        rb.velocity = Vector3.zero;
-        player.transform.position = respawnPoint.position;
+        var obj = other.gameObject;
+        if (obj.CompareTag("Player"))
+        {
+            var controller = obj.GetComponent<ArcherController>();
+            controller.Respawn();
+        }
+        else
+        {
+            Destroy(obj);
+        }
     }
 }
