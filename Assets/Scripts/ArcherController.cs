@@ -15,13 +15,15 @@ public class ArcherController : MonoBehaviour
     Transform _respawn;
     PhotonView _photonView;
 
+    public TextMesh PlayerName;
     public bool IsMine => _photonView != null && _photonView.IsMine;
-    
+
     [SerializeField]
     GameObject arrowPrefab;
+
     [SerializeField]
     Transform arrowSpawn;
-    
+
     void Awake()
     {
         _animator = GetComponent<Animator>();
@@ -31,31 +33,36 @@ public class ArcherController : MonoBehaviour
         _respawn = GameObject.Find("RespawnPoint").transform;
     }
 
-    void Update()
+    void Start()
     {
-        if (!IsMine)
-            return;
-        
-        _animator.SetBool(_walk, _movement.HorizontalRaw != 0);
-        
-        if (Input.GetButton("Fire2"))
-        {
-            Attack();
-        }
+        PlayerName.text = _photonView.Owner.NickName;
     }
 
+    void Update()
+    {
+        PlayerName.transform.forward = (PlayerName.transform.position - Camera.main.transform.position); //billboard
+
+        _animator.SetBool(_walk, _movement.MovimentDirection() != 0);
+
+        if (!IsMine) return;
+        if (Input.GetButton("Fire2"))
+            _photonView.RPC(nameof(Attack), RpcTarget.All);
+    }
+
+    [PunRPC]
     public void Attack()
     {
         _animator.SetBool(_attack, true);
         _movement.LockMovement();
     }
-    
+
     public void Die()
     {
         _movement.LockMovement();
         _animator.SetBool(_dead, true);
         Invoke(nameof(Respawn), 3f);
     }
+
     public void Respawn()
     {
         _animator.SetBool(_dead, false);
@@ -75,21 +82,20 @@ public class ArcherController : MonoBehaviour
     void ForceUnlock()
     {
         if (!_movement.locked) return;
-        
+
         _movement.UnlockMovement();
         _animator.SetBool(_attack, false);
     }
-    
+
     public void ArrowTrigger()
     {
         Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
-        Invoke(nameof(ForceUnlock),.3f);
+        Invoke(nameof(ForceUnlock), .3f);
     }
-    
+
     public void EndAttack()
     {
         _animator.SetBool(_attack, false);
         _movement.UnlockMovement();
     }
-    
 }
