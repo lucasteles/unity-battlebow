@@ -66,7 +66,6 @@ public class ArcherController : MonoBehaviour, IPunObservable
         _movement.LockMovement();
     }
 
-    [PunRPC]
     public void Die()
     {
         _movement.LockMovement();
@@ -92,7 +91,8 @@ public class ArcherController : MonoBehaviour, IPunObservable
             var parent = otherObject.GetComponent<ArrowScript>()?.Parent;
             if (parent != null)
                 parent.score++;
-            _photonView.RPC(nameof(Die), RpcTarget.All);
+                
+            Die();
         }
     }
 
