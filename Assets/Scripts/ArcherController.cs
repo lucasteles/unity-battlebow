@@ -7,14 +7,13 @@ using UnityEngine;
 
 public class ArcherController : MonoBehaviour, IPunObservable
 {
-    readonly int _walk = Animator.StringToHash("Walk");
-    readonly int _attack = Animator.StringToHash("Attack");
-    readonly int _dead = Animator.StringToHash("Dead");
-    Animator _animator;
     Rigidbody _rb;
-    ArcherMovement _movement;
     Transform _respawn;
     PhotonView _photonView;
+
+    ArcherMovement _movement;
+    ArcherAnimation _animation;
+
     bool airAttack = false;
 
     public TextMesh PlayerName;
@@ -33,7 +32,7 @@ public class ArcherController : MonoBehaviour, IPunObservable
 
     void Awake()
     {
-        _animator = GetComponent<Animator>();
+        _animation = GetComponent<ArcherAnimation>();
         _movement = GetComponent<ArcherMovement>();
         _rb = GetComponent<Rigidbody>();
         _photonView = GetComponent<PhotonView>();
@@ -50,17 +49,15 @@ public class ArcherController : MonoBehaviour, IPunObservable
     void Update()
     {
         PlayerName.transform.forward = (PlayerName.transform.position - Camera.main.transform.position); //billboard
-        // PlayerName.text = score.ToString();
 
-        
-        _animator.SetBool(_walk, _movement.MovimentDirection() != 0);
+        _animation.Waking(isWaking: _movement.MovimentDirection() != 0);
         Crown.SetActive(Id != null && GameManager.Instance.winningPlayer == Id);
 
         if (!IsMine) return;
-        
+
         if (Input.GetKey(KeyCode.Escape))
             Respawn();
-        
+
         if (Input.GetButton("Fire2"))
             _photonView.RPC(nameof(Attack), RpcTarget.All);
     }
@@ -79,18 +76,16 @@ public class ArcherController : MonoBehaviour, IPunObservable
 
         airAttack = true;
         _movement.LockMovement();
-        _animator.SetBool(_walk, false);
-        _animator.SetBool(_attack, true);
+        _animation.Attack();
         _rb.velocity = Vector3.zero;
         _rb.useGravity = false;
-        // Invoke(nameof(ForceUnlock), .5f);
     }
-    
+
     public void Die()
     {
         _movement.LockMovement();
         SoundManager.Instance.PlayDie();
-        _animator.SetBool(_dead, true);
+        _animation.Die();
         Invoke(nameof(Respawn), 3f);
     }
 
@@ -98,10 +93,10 @@ public class ArcherController : MonoBehaviour, IPunObservable
     {
         score = 0;
         airAttack = false;
-        _rb.useGravity = true;
-        _animator.SetBool(_dead, false);
-        _animator.SetBool(_attack, false);
         transform.position = _respawn.position;
+
+        _rb.useGravity = true;
+        _animation.Reset();
         _rb.velocity = Vector3.zero;
         _movement.UnlockMovement();
     }
@@ -114,21 +109,20 @@ public class ArcherController : MonoBehaviour, IPunObservable
             var parent = otherObject.GetComponent<ArrowScript>()?.Parent;
             if (parent != null)
                 parent.score++;
-                
+
             Die();
         }
     }
 
-    public void ArrowTrigger()
+    public void ShotArrow()
     {
         var arrow = Instantiate(arrowPrefab, arrowSpawn.position, transform.rotation);
         arrow.GetComponent<ArrowScript>().Parent = this;
     }
 
-    public void EndAttack()
+    public void ReleaseAttack()
     {
-        _animator.SetBool(_attack, false);
-        _animator.SetBool(_walk, false);
+        _animation.Reset();
         _rb.useGravity = true;
         _movement.UnlockMovement();
     }
@@ -136,12 +130,8 @@ public class ArcherController : MonoBehaviour, IPunObservable
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
-        {
             stream.SendNext(score);
-        }
         else
-        {
             score = (int) stream.ReceiveNext();
-        }
     }
 }
