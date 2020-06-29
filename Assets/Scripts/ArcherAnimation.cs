@@ -31,13 +31,6 @@ public class ArcherAnimation : MonoBehaviour
         _controller.ShotArrow();
     }
 
-    public void EndAttack()
-    {
-        _animator.SetBool(_attack, false);
-        _animator.SetBool(_walk, false);
-        _controller.ReleaseAttack();
-    }
-
     public void Waking(bool isWaking)
     {
         _animator.SetBool(_walk, isWaking);
@@ -53,6 +46,5 @@ public class ArcherAnimation : MonoBehaviour
     {
         _animator.SetBool(_dead, false);
         _animator.SetBool(_attack, false);
-        _animator.SetBool(_walk, false);
     }
 }

@@ -79,6 +79,8 @@ public class ArcherController : MonoBehaviour, IPunObservable
         _animation.Attack();
         _rb.velocity = Vector3.zero;
         _rb.useGravity = false;
+        
+        Invoke(nameof(ReleaseAttack), 1);
     }
 
     public void Die()
@@ -125,6 +127,7 @@ public class ArcherController : MonoBehaviour, IPunObservable
         _animation.Reset();
         _rb.useGravity = true;
         _movement.UnlockMovement();
+        
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
